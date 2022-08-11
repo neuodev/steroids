@@ -21,6 +21,7 @@ CREATE TABLE messages (
 
 CREATE table friends (
     user_id SERIAL REFERENCES users(id),
+    room_id SERIAL UNIQUE NOT NULL,
     friend SERIAL REFERENCES users(id)
 );
 

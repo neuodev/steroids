@@ -5,4 +5,6 @@ use serde::{Deserialize, Serialize};
 pub enum Event {
     Join { room: String },
     Message { to: String, msg: String },
+    Register {},
+    Login {}
 }
