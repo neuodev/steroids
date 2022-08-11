@@ -1,5 +1,5 @@
 DROP Table if EXISTS users, notifications, messages, groups, groups_users;
-create TYPE MSG_TYPE AS ENUM ('text', 'file')
+CREATE TYPE MSG_TYPE AS ENUM ('text', 'file');
 
 CREATE TABLE users (
     id SERIAL PRIMARY KEY NOT NULL, 
