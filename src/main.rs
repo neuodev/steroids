@@ -64,6 +64,8 @@ async fn main() -> Result<(), IoError> {
             error!("Unable to migrate: {e}");
             process::exit(1);
         });
+
+        info!("Migrated successfully");
     }
 
     let listener = TcpListener::bind(&addr).await.expect("Failed to bind");

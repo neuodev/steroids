@@ -4,7 +4,7 @@ use std::{
     sync::MutexGuard,
 };
 
-use crate::{events::Event, Rooms, Sessions, Tx, Database, AppState};
+use crate::{events::Event, Tx, AppState};
 use futures_channel::mpsc::unbounded;
 use futures_util::{future, pin_mut, stream::TryStreamExt, StreamExt};
 use log::{info, warn};

@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "dev": "cross-env RUST_LOG=info cargo watch -x \"run --bin tg-ws\"",
+    "migrate": "cross-env RUST_LOG=info cargo run -- --migrate",
     "fmt": "rustfmt ./src/main.rs --edition 2021"
   },
   "keywords": [],
