@@ -4,12 +4,14 @@ use std::{
     sync::MutexGuard,
 };
 
-use crate::{events::Event, Tx, AppState};
+use crate::{events::Event, Tx, AppState, db::register_user};
 use futures_channel::mpsc::unbounded;
 use futures_util::{future, pin_mut, stream::TryStreamExt, StreamExt};
+use tokio::runtime::Runtime;
 use log::{info, warn};
 use serde_json::json;
 use tokio::net::TcpStream;
+use tokio_postgres::Client;
 use tungstenite::Message;
 
 pub async fn handle_connection(
@@ -32,8 +34,9 @@ pub async fn handle_connection(
         info!("Received a message from {}", addr,);
         let mut rooms = rooms.lock().unwrap();
         let mut sessions = sessions.lock().unwrap();
+        let mut client = db.lock().unwrap();
         match msg.clone() {
-            Message::Text(txt) => handle_event(txt, &mut rooms, &mut sessions, addr),
+            Message::Text(txt) => Runtime::new().unwrap().block_on(handle_event(txt, &mut rooms, &mut sessions, addr, &mut client)),
             Message::Close(_) => {
                 // Should be removed from all rooms
                 for (_, addresses) in rooms.iter_mut() {
@@ -46,24 +49,25 @@ pub async fn handle_connection(
             _ => {
                 warn!("Uncatched message type")
             }
-        }
+        };
 
         future::ok(())
     });
 
-    let receive_from_others = rx.map(Ok).forward(outgoing);
-    pin_mut!(broadcast_incoming, receive_from_others);
-    future::select(broadcast_incoming, receive_from_others).await;
+    // let receive_from_others = rx.map(Ok).forward(outgoing);
+    // pin_mut!(broadcast_incoming, receive_from_others);
+    // future::select(broadcast_incoming, receive_from_others).await;
 
     warn!("{} disconnected", &addr);
     sessions.lock().unwrap().remove(&addr);
 }
 
-fn handle_event(
+async fn handle_event(
     msg: String,
-    rooms: &mut MutexGuard<HashMap<String, HashSet<SocketAddr>>>,
-    sessions: &mut MutexGuard<HashMap<SocketAddr, Tx>>,
+    rooms: &mut MutexGuard<'_, HashMap<String, HashSet<SocketAddr>>>,
+    sessions: &mut MutexGuard<'_, HashMap<SocketAddr, Tx>>,
     addr: SocketAddr,
+    client: &mut MutexGuard<'_, Client>
 ) {
     let event: Event = serde_json::from_str(msg.as_str()).unwrap();
 
@@ -100,6 +104,11 @@ fn handle_event(
                     }
                 }
             }
-        }
-    }
+        },
+        Event::Register { username, password } => {
+                register_user(client, username, password).await;
+        },
+        Event::Login { username, password } => {},
+        Event::AddFriend { friend_id } => {}
+    };
 }

@@ -1,11 +1,11 @@
-DROP Table if EXISTS users, notifications, messages, groups, groups_users;
+DROP Table if EXISTS friends, users, notifications, messages, groups, groups_users;
 DROP TYPE msg_type;
 CREATE TYPE msg_type AS ENUM ('text', 'video', 'photo');
 
 
 CREATE TABLE users (
     id SERIAL PRIMARY KEY NOT NULL, 
-    username VARCHAR(255) NOT NULL,
+    username VARCHAR(255) NOT NULL UNIQUE,
     password VARCHAR(255) NOT NULL,
     is_active BOOLEAN NOT NULL DEFAULT false
 );
