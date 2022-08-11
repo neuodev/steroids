@@ -4,7 +4,7 @@ use std::{
     sync::MutexGuard,
 };
 
-use crate::{events::Event, Rooms, Sessions, Tx};
+use crate::{events::Event, Rooms, Sessions, Tx, Database, AppState};
 use futures_channel::mpsc::unbounded;
 use futures_util::{future, pin_mut, stream::TryStreamExt, StreamExt};
 use log::{info, warn};
@@ -13,13 +13,12 @@ use tokio::net::TcpStream;
 use tungstenite::Message;
 
 pub async fn handle_connection(
-    sessions: Sessions,
-    rooms: Rooms,
+    state: AppState,
     raw_stream: TcpStream,
     addr: SocketAddr,
 ) {
     info!("Incomming TCP connection from: {}", addr);
-
+    let AppState { sessions, rooms, db } = state;
     let ws_stream = tokio_tungstenite::accept_async(raw_stream)
         .await
         .expect("Error during the websocket handshake occured");
@@ -89,26 +88,18 @@ fn handle_event(
                 .find(|(r, _)| r == &&to)
                 .map(|(_, sockets)| sockets);
 
-            let message = serde_json::to_string_pretty(&json!({
-                "message": msg
-            })).unwrap();
+            let message = serde_json::to_string_pretty(&json!({ "message": msg })).unwrap();
 
             if let Some(sockets) = sockets {
                 for socket in sockets.into_iter() {
                     if socket != &addr {
                         let ws_sink = sessions.get(socket).unwrap();
-                        ws_sink.unbounded_send(Message::Text(message.clone())).unwrap();
+                        ws_sink
+                            .unbounded_send(Message::Text(message.clone()))
+                            .unwrap();
                     }
                 }
             }
-            //      let boradcast_recipient = sessions
-            //     .iter()
-            //     .filter(|(peer_addr, _)| peer_addr != &&addr)
-            //     .map(|(_, ws_sink)| ws_sink);
-
-            // for recp in boradcast_recipient {
-            //     // recp.unbounded_send(msg.clone()).unwrap();
-            // }
         }
     }
 }

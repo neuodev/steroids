@@ -1,0 +1,41 @@
+DROP Table if EXISTS users, notifications, messages, groups, groups_users;
+create TYPE MSG_TYPE AS ENUM ('text', 'file')
+
+CREATE TABLE users (
+    id SERIAL PRIMARY KEY NOT NULL, 
+    username VARCHAR(255) NOT NULL,
+    password VARCHAR(255) NOT NULL,
+    is_active BOOLEAN NOT NULL DEFAULT false,
+);
+
+CREATE TABLE messages (
+    id SERIAL PRIMARY KEY NOT NULL,
+    sender SERIAL REFERENCES users(id),
+    receiver SERIAL REFERENCES users(id),
+    msg_type MSG_TYPE, 
+    content: TEXT,
+    is_seen BOOLEAN NOT NULL DEFAULT false,
+);
+
+CREATE table friends (
+    user_id SERIAL REFERENCES users(id),
+    friend SERIAL REFERENCES users(id),
+);
+
+CREATE TABLE notifications (
+    id SERIAL PRIMARY KEY NOT NULL,
+    user_id SERIAL REFERENCES users(id),
+    content TEXT NOT NULL,
+    is_seen BOOLEAN NOT NULL DEFAULT false,
+);
+
+CREATE TABLE groups (
+    id SERIAL PRIMARY KEY NOT NULL,
+    name VARCHAR(255),
+    owner SERIAL REFERENCES users(id)
+);
+
+CREATE TABLE groups_users (
+    user_id SERIAL REFERENCES users(id),
+    group_id SERIAL REFERENCES groups(id)
+);
