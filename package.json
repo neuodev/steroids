@@ -1,0 +1,16 @@
+{
+  "name": "tg-ws",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev": "cross-env RUST_LOG=info cargo watch -x \"run --bin tg-ws\"",
+    "fmt": "rustfmt ./src/main.rs --edition 2021"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "cross-env": "^7.0.3"
+  }
+}
